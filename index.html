@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Matrículas - Traslados Barranquilla y Soledad</title>
+    <!-- Tailwind CSS para un diseño limpio y profesional -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 min-h-screen flex flex-col justify-between">
+
+    <!-- Encabezado -->
+    <header class="bg-blue-900 text-white py-6 shadow-md">
+        <div class="max-w-4xl mx-auto px-4 text-center">
+            <h1 class="text-2xl font-bold">Consulta de Matrículas Inmobiliarias</h1>
+            <p class="text-blue-200 text-sm mt-1">Histórico de Traslados: Círculo Registral Barranquilla (040) y Soledad (041)</p>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="max-w-xl mx-auto px-4 py-10 flex-grow w-full">
+        <div class="bg-white rounded-xl shadow-lg p-6 sm:p-8">
+            <p class="text-slate-600 text-sm mb-4 text-center">
+                Ingrese el número de matrícula (con o sin prefijo, ej: <span class="font-mono bg-slate-100 px-1 py-0.5 rounded">040-353927</span> o <span class="font-mono bg-slate-100 px-1 py-0.5 rounded">353927</span>).
+            </p>
+
+            <!-- Formulario de Búsqueda -->
+            <div class="flex flex-col sm:flex-row gap-3">
+                <input 
+                    type="text" 
+                    id="inputMatricula" 
+                    placeholder="Ej. 353927 o 040-353927" 
+                    class="flex-grow border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-600 font-mono text-center sm:text-left text-lg"
+                    autofocus
+                >
+                <button 
+                    onclick="consultarMatricula()" 
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-lg transition shadow"
+                >
+                    Consultar
+                </button>
+            </div>
+
+            <!-- Área de Resultados -->
+            <div id="resultadoContainer" class="mt-8 hidden">
+                <div id="resultadoCard" class="border rounded-lg p-5 transition-all">
+                    <!-- Se llena dinámicamente mediante JavaScript -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Pie de página -->
+    <footer class="text-center py-6 text-slate-500 text-xs">
+        Sistema de Consulta de Matrículas Inmobiliarias &bull; Optimizado para GitHub Pages
+    </footer>
+
+    <!-- Lógica de Búsqueda con JavaScript -->
+    <script>
+        let dbMatriculas = {};
+
+        // Cargar el archivo JSON automáticamente al abrir la página
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                let response = await fetch('traslados.json');
+                dbMatriculas = await response.json();
+                console.log("Base de datos de matrículas cargada correctamente.");
+            } catch (error) {
+                console.error("Error al cargar el archivo traslados.json:", error);
+                alert("No se pudo cargar la base de datos de traslados.");
+            }
+        });
+
+        // Permitir buscar presionando la tecla "Enter"
+        document.getElementById('inputMatricula').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                consultarMatricula();
+            }
+        });
+
+        function consultarMatricula() {
+            let inputVal = document.getElementById('inputMatricula').value.trim();
+            let container = document.getElementById('resultadoContainer');
+            let card = document.getElementById('resultadoCard');
+
+            if (!inputVal) {
+                alert("Por favor ingrese un número de matrícula válido.");
+                return;
+            }
+
+            // Normalización: Extraer solo los números del texto ingresado (ignora guiones y prefijos)
+            // Ejemplo: "040-353927" -> "353927"
+            let partes = inputVal.split('-');
+            let numeroLimpio = partes[partes.length - 1].trim();
+
+            container.classList.remove('hidden');
+
+            // Buscar en el diccionario cargado
+            if (dbMatriculas.hasOwnProperty(numeroLimpio)) {
+                let data = dbMatriculas[numeroLimpio];
+                
+                card.className = "border border-emerald-200 bg-emerald-50 rounded-lg p-5";
+                card.innerHTML = `
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="bg-emerald-600 text-white text-xs font-bold px-2.5 py-1 rounded-full uppercase">¡Matrícula Trasladada Encontrada!</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                        <div class="bg-white p-3 rounded border border-emerald-100 shadow-sm">
+                            <span class="block text-xs text-slate-500 uppercase font-semibold">Matrícula de Origen (Barranquilla)</span>
+                            <span class="text-lg font-mono font-bold text-slate-800">${data.o}</span>
+                        </div>
+                        <div class="bg-white p-3 rounded border border-emerald-100 shadow-sm">
+                            <span class="block text-xs text-slate-500 uppercase font-semibold">Matrícula de Destino (Soledad)</span>
+                            <span class="text-lg font-mono font-bold text-blue-700">${data.d}</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-4 text-center">El inmueble fue trasladado al Círculo Registral de Soledad (041).</p>
+                `;
+            } else {
+                card.className = "border border-amber-200 bg-amber-50 rounded-lg p-5 text-center";
+                card.innerHTML = `
+                    <span class="bg-amber-600 text-white text-xs font-bold px-2.5 py-1 rounded-full uppercase">Sin Registro de Traslado</span>
+                    <p class="text-slate-700 text-sm mt-3">La matrícula <strong class="font-mono">${inputVal}</strong> no registra antecedentes de traslado en la base de datos analizada (o el número no existe).</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
