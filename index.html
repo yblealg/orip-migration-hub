@@ -4,12 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Consulta de Matrículas - Traslados Barranquilla y Soledad</title>
-    <!-- Tailwind CSS para diseño moderno -->
+    
+    <!-- Tailwind CSS para diseño institucional moderno -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Configuración personalizada de Tailwind y efectos LED / 3D -->
     <style>
-        /* Estilos específicos para impresión / PDF */
+        /* Botón LED 3D con Gradiente Esmeralda-Amarillo Tenue y Glow */
+        .btn-led-3d {
+            background: linear-gradient(135deg, #10b981 0%, #059669 70%, #facc15 100%);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4), 0 2px 4px rgba(0, 0, 0, 0.2);
+            border-bottom: 3px solid #047857;
+            transition: all 0.15s ease-in-out;
+        }
+
+        .btn-led-3d:hover {
+            background: linear-gradient(135deg, #34d399 0%, #10b981 70%, #fef08a 100%);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6), 0 2px 6px rgba(0, 0, 0, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .btn-led-3d:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+            border-bottom: 1px solid #047857;
+        }
+
+        /* Animación para Notificaciones Flotantes (Toasts estilo Alertify) */
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        .toast-notification {
+            animation: slideInRight 0.3s ease-out forwards;
+        }
+
+        .toast-notification.hide {
+            animation: fadeOut 0.4s ease-out forwards;
+        }
+
+        /* Reglas CSS para Impresión Oficial y Exportación a PDF */
         @media print {
-            header, footer, .no-print, button, input, textarea, aside {
+            header, footer, .no-print, button, input, textarea, aside, #historialContainer, #toastContainer {
                 display: none !important;
             }
             body {
@@ -37,15 +79,18 @@
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-slate-50 to-slate-100 text-slate-800 min-h-screen flex flex-col justify-between font-sans">
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 text-slate-800 min-h-screen flex flex-col justify-between font-sans antialiased">
 
-    <!-- Layout Principal: Lateral + Contenido -->
+    <!-- Contenedor Flotante de Notificaciones (Toasts estilo Alertify) -->
+    <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none no-print"></div>
+
+    <!-- Layout Principal: Lateral + Contenido Principal -->
     <div class="flex flex-col md:flex-row min-h-screen flex-grow">
 
-        <!-- ================= PANEL LATERAL IZQUIERDO (SIDEBAR) ================= -->
+        <!-- ================= BLOQUE 1: PANEL LATERAL IZQUIERDO (SIDEBAR INSTITUCIONAL) ================= -->
         <aside class="w-full md:w-72 bg-slate-900 text-white p-6 flex flex-col justify-between border-r-4 border-emerald-500 shadow-2xl no-print shrink-0">
             <div>
-                <!-- Identificador Principal -->
+                <!-- Logotipo SNR e Identificador -->
                 <div class="border-b border-slate-800 pb-4 mb-5">
                     <h1 class="text-xl font-extrabold tracking-wide text-white flex items-center gap-2">
                         <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block animate-pulse"></span> SNR SIR
@@ -53,8 +98,8 @@
                     <p class="text-slate-400 text-xs font-medium mt-1">ORIP Barranquilla / Soledad</p>
                 </div>
 
-                <!-- Datos del Funcionario y Ficha Técnica -->
-                <div class="space-y-4 text-xs bg-slate-800/50 p-3.5 rounded-xl border border-slate-700/60 shadow-inner">
+                <!-- Datos Fichas y Funcionario (Yair B. Leal Guerra) -->
+                <div class="space-y-3 text-xs bg-slate-800/60 p-4 rounded-xl border border-slate-700/80 shadow-inner">
                     <div>
                         <span class="block text-slate-400 font-bold uppercase tracking-wider text-[10px]">Funcionario:</span>
                         <span class="text-sm font-bold text-white">Yair B. Leal Guerra</span>
@@ -72,11 +117,16 @@
 
                     <div>
                         <span class="block text-slate-400 font-bold uppercase tracking-wider text-[10px]">Norma / Referencia:</span>
-                        <span class="text-slate-200">Res. 1726 del 29 de Enero de 2026</span>
+                        <span class="text-slate-300">Res. 1726 del 29 de Enero de 2026</span>
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-700/60">
+                        <span class="block text-slate-400 font-bold uppercase tracking-wider text-[10px]">Base de Datos:</span>
+                        <span id="txtContadorFolios" class="text-emerald-400 font-bold text-xs">Cargando folios...</span>
                     </div>
                 </div>
 
-                <!-- Imagen OTI -->
+                <!-- Asistente OTI (Repositorio sistema-modular-core) -->
                 <div class="mt-5 rounded-xl overflow-hidden border border-slate-700 shadow-lg group">
                     <img 
                         src="https://raw.githubusercontent.com/yblealg/sistema-modular-core/main/OTI.jpg" 
@@ -86,7 +136,7 @@
                     >
                 </div>
 
-                <!-- Logo SNR -->
+                <!-- Logo Superintendencia (Repositorio sistema-modular-core) -->
                 <div class="mt-4 bg-white p-2.5 rounded-xl border border-slate-700 shadow-lg">
                     <img 
                         src="https://raw.githubusercontent.com/yblealg/sistema-modular-core/main/logoSNR.jpg" 
@@ -97,24 +147,24 @@
                 </div>
             </div>
 
-            <!-- Pie del Panel Lateral -->
+            <!-- Footer del Sidebar -->
             <div class="mt-6 pt-3 border-t border-slate-800 text-center">
                 <p class="text-xs text-emerald-400 font-bold">Migration Project</p>
-                <p class="text-[10px] text-slate-500">Versión 3.0</p>
+                <p class="text-[10px] text-slate-500">Versión 3.5 Final</p>
             </div>
         </aside>
 
-        <!-- ================= CONTENIDO PRINCIPAL ================= -->
+        <!-- ================= BLOQUE 2: ÁREA PRINCIPAL DE TRABAJO ================= -->
         <div class="flex-grow flex flex-col justify-between">
             
-            <!-- Encabezado Superior -->
+            <!-- Encabezado Superior con Pestañas de Navegación -->
             <header class="bg-slate-900 text-white py-4 px-6 shadow-lg border-b border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div>
                     <h2 class="text-lg sm:text-xl font-bold tracking-tight text-white">Consulta de Matrículas Inmobiliarias</h2>
                     <p class="text-slate-400 text-xs mt-0.5">Histórico de Traslados: Círculo Registral Barranquilla (040) &rarr; Soledad (041)</p>
                 </div>
                 
-                <!-- Botones de Pestaña Modernos y Dinámicos -->
+                <!-- Botones de Pestaña (Modos de Consulta) -->
                 <div class="flex bg-slate-800 p-1 rounded-xl shadow-inner border border-slate-700/80 no-print gap-1">
                     <button onclick="cambiarModo('individual')" id="btnTabIndividual" class="px-4 py-2 text-xs font-bold rounded-lg transition-all duration-300 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 shadow-md">
                         Búsqueda Individual
@@ -125,7 +175,7 @@
                 </div>
             </header>
 
-            <!-- Encabezado oculto para Imprimir -->
+            <!-- Encabezado de Impresión (Solo visible al generar PDF/Imprimir) -->
             <div class="print-header hidden">
                 <h2 style="font-size: 18pt; font-weight: bold; margin: 0;">REPORTE OFICIAL DE CONSULTA DE MATRÍCULAS</h2>
                 <p style="font-size: 10pt; color: #475569; margin-top: 4px;">Sistema de Verificación de Traslados ORIP Barranquilla (040) / Soledad (041)</p>
@@ -133,16 +183,16 @@
                 <p id="printFechaHora" style="font-size: 9pt; color: #64748b; margin-top: 2px;"></p>
             </div>
 
-            <!-- Área Central de Trabajo -->
+            <!-- Contenido Dinámico Principal -->
             <main class="max-w-4xl mx-auto px-4 py-8 flex-grow w-full">
 
-                <!-- ================= MÓDULO 1: BÚSQUEDA INDIVIDUAL Y PARCIAL ================= -->
-                <div id="seccionIndividual" class="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl border border-slate-200/80 p-6 sm:p-8 relative backdrop-blur-sm">
+                <!-- ================= MÓDULO A: BÚSQUEDA INDIVIDUAL Y PARCIAL ================= -->
+                <div id="seccionIndividual" class="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl border border-slate-200/80 p-6 sm:p-8 relative">
                     <p class="text-slate-600 text-sm mb-5 text-center font-medium">
                         Ingrese el número de matrícula de origen (1 a 6 dígitos, ej: <span class="font-mono bg-slate-100 text-emerald-700 px-1.5 py-0.5 rounded border border-slate-200 font-bold">353927</span> o <span class="font-mono bg-slate-100 text-emerald-700 px-1.5 py-0.5 rounded border border-slate-200 font-bold">040-353927</span>).
                     </p>
 
-                    <!-- Campo de Texto y Botón de Búsqueda Moderno -->
+                    <!-- Formulario de Búsqueda con Botón LED 3D -->
                     <div class="relative no-print">
                         <div class="flex flex-col sm:flex-row gap-3">
                             <div class="relative flex-grow">
@@ -157,26 +207,33 @@
                                     autofocus
                                 >
                             </div>
+                            <!-- Botón LED 3D Personalizado -->
                             <button 
                                 onclick="consultarMatriculaDirecta()" 
-                                class="bg-gradient-to-r from-emerald-500 hover:from-emerald-600 to-teal-600 hover:to-teal-700 text-slate-950 font-extrabold px-7 py-3.5 rounded-xl transition-all shadow-lg hover:shadow-emerald-500/25 flex items-center justify-center gap-2 transform active:scale-95"
+                                class="btn-led-3d text-slate-950 font-extrabold px-8 py-3.5 rounded-xl flex items-center justify-center gap-2 cursor-pointer"
                             >
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                                 Buscar
                             </button>
                         </div>
 
-                        <!-- Desplegable de Coincidencias Moderno -->
+                        <!-- Desplegable de Coincidencias en Tiempo Real -->
                         <div id="dropdownSugerencias" class="absolute z-20 left-0 right-0 top-full mt-2 bg-white border border-slate-200 rounded-xl shadow-2xl max-h-72 overflow-y-auto hidden divide-y divide-slate-100"></div>
                     </div>
 
-                    <!-- Tarjeta de Resultado Individual -->
-                    <div id="resultadoContainer" class="mt-8 hidden print-area">
+                    <!-- Historial de Búsquedas Recientes -->
+                    <div id="historialContainer" class="mt-4 hidden no-print">
+                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Consultas Recientes en Sesión:</span>
+                        <div id="historialChips" class="flex flex-wrap gap-1.5"></div>
+                    </div>
+
+                    <!-- Tarjeta con los Resultados de la Búsqueda Individual -->
+                    <div id="resultadoContainer" class="mt-6 hidden print-area">
                         <div id="resultadoCard" class="border rounded-2xl p-6 transition-all shadow-md"></div>
                     </div>
                 </div>
 
-                <!-- ================= MÓDULO 2: BÚSQUEDA POR LOTE ================= -->
+                <!-- ================= MÓDULO B: BÚSQUEDA MASIVA POR LOTE ================= -->
                 <div id="seccionLote" class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl border border-slate-200/80 p-6 sm:p-8 hidden">
                     <h2 class="text-lg font-bold text-slate-900 mb-1">Consulta Masiva de Folios</h2>
                     <p class="text-slate-600 text-sm mb-4">
@@ -191,10 +248,10 @@
                             class="w-full border-2 border-slate-200 rounded-xl p-4 font-mono text-sm focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 mb-4 shadow-sm transition-all"
                         ></textarea>
 
-                        <div class="flex justify-between items-center gap-3">
+                        <div class="flex flex-wrap justify-between items-center gap-3">
                             <button 
                                 onclick="procesarLote()" 
-                                class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-7 py-3 rounded-xl transition-all shadow-md hover:shadow-lg transform active:scale-95"
+                                class="btn-led-3d text-slate-950 font-extrabold px-7 py-3 rounded-xl cursor-pointer"
                             >
                                 Procesar Lista Masiva
                             </button>
@@ -207,17 +264,24 @@
                         </div>
                     </div>
 
-                    <!-- Tabla de Resultados por Lote -->
+                    <!-- Tabla de Resultados por Lote con Exportación -->
                     <div id="resultadoLoteContainer" class="mt-8 hidden print-area">
-                        <div class="flex justify-between items-center mb-4 no-print">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 no-print">
                             <h3 class="font-bold text-slate-800">Resultados del Procesamiento</h3>
-                            <button 
-                                onclick="imprimirPagina()" 
-                                class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all shadow-md flex items-center gap-2"
-                            >
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                                Exportar a PDF / Imprimir
-                            </button>
+                            <div class="flex gap-2">
+                                <button 
+                                    onclick="exportarLoteCSV()" 
+                                    class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow flex items-center gap-1.5"
+                                >
+                                    📥 Exportar Excel/CSV
+                                </button>
+                                <button 
+                                    onclick="imprimirPagina()" 
+                                    class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow flex items-center gap-1.5"
+                                >
+                                    🖨️ PDF / Imprimir
+                                </button>
+                            </div>
                         </div>
 
                         <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-sm">
@@ -239,7 +303,7 @@
 
             </main>
 
-            <!-- Pie de página -->
+            <!-- Pie de Página Institucional -->
             <footer class="text-center py-4 text-slate-500 text-xs border-t border-slate-200/60 no-print bg-white/50 backdrop-blur-sm">
                 Sistema de Consulta de Matrículas Inmobiliarias &bull; ORIP Barranquilla & Soledad
             </footer>
@@ -247,27 +311,67 @@
 
     </div>
 
-    <!-- Lógica de Búsqueda y Filtros de Seguridad -->
+    <!-- ================= BLOQUE 3: LÓGICA JAVASCRIPT ROBUSTA ================= -->
     <script>
+        // Variables Globales de Estado
         let dbMatriculas = {};
+        let historialBusquedas = [];
+        let resultadosLoteMemoria = [];
 
+        // 1. Carga Automática de la Base de Datos JSON al Iniciar la Página
         window.addEventListener('DOMContentLoaded', async () => {
             try {
                 let response = await fetch('traslados.json');
                 dbMatriculas = await response.json();
-                console.log("Base de datos cargada correctamente.");
+                
+                let totalRegistros = Object.keys(dbMatriculas).length;
+                console.log(`Base de datos cargada correctamente. Registros: ${totalRegistros}`);
+                
+                // Actualizar contador en el Sidebar
+                document.getElementById('txtContadorFolios').textContent = `${totalRegistros.toLocaleString('es-CO')} folios indexados`;
             } catch (error) {
-                console.error("Error al cargar el JSON:", error);
-                alert("No se pudo cargar la base de datos de traslados.");
+                console.error("Error al cargar traslados.json:", error);
+                document.getElementById('txtContadorFolios').textContent = "Error al cargar folios";
+                mostrarToast("Error al cargar la base de datos de traslados.", "error");
             }
         });
 
+        // 2. Controladores de Eventos del Teclado (Enter y Escape)
         document.getElementById('inputMatricula').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 consultarMatriculaDirecta();
             }
         });
 
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.getElementById('dropdownSugerencias').classList.add('hidden');
+            }
+        });
+
+        // 3. Notificaciones Flotantes Estilo Alertify (Toast)
+        function mostrarToast(mensaje, tipo = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            
+            let colorBg = tipo === 'success' ? 'bg-emerald-600' : tipo === 'error' ? 'bg-red-600' : 'bg-slate-800';
+            
+            toast.className = `toast-notification ${colorBg} text-white text-xs font-bold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 pointer-events-auto`;
+            toast.innerHTML = `
+                <span>${tipo === 'success' ? '✅' : tipo === 'error' ? '⚠️' : 'ℹ️'}</span>
+                <span>${mensaje}</span>
+            `;
+
+            container.appendChild(toast);
+
+            // Auto-eliminar a los 3 segundos
+            setTimeout(() => {
+                toast.classList.add('hide');
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        }
+
+        // 4. Alternar Modos de Pestaña (Individual vs Lote)
         function cambiarModo(modo) {
             const secInd = document.getElementById('seccionIndividual');
             const secLot = document.getElementById('seccionLote');
@@ -287,19 +391,19 @@
             }
         }
 
-        // Función auxiliar para extraer solo los dígitos numéricos
+        // 5. Función Auxiliar para Limpiar y Extraer Números Puros
         function limpiarNumero(val) {
             if (!val) return "";
             let partes = String(val).split('-');
             return partes[partes.length - 1].replace(/\D/g, '').trim();
         }
 
-        // Sanitización en tiempo real
+        // 6. Sanitización en Tiempo Real (Bloquea letras y caracteres especiales)
         function sanitizarEntradaDirecta(inputElement) {
             inputElement.value = inputElement.value.replace(/[^0-9-]/g, '');
         }
 
-        // Validación estricta de seguridad
+        // 7. Validación Estricta de Seguridad (Rango 1 a 6 dígitos)
         function validarYLimpiarMatricula(val) {
             if (!val) return null;
             let limpio = val.trim();
@@ -322,7 +426,7 @@
             return numStr; 
         }
 
-        // Búsqueda Parcial ESTRICTAMENTE filtrada por la Matrícula de Origen (040)
+        // 8. Autocompletado / Búsqueda Parcial ESTRICTAMENTE filtrada por Origen (040)
         function buscarCoincidenciasParciales() {
             let inputVal = document.getElementById('inputMatricula').value;
             let dropdown = document.getElementById('dropdownSugerencias');
@@ -341,7 +445,7 @@
                 let item = dbMatriculas[k];
                 let origenLimpio = limpiarNumero(item.o);
                 
-                // Comparamos únicamente contra la matrícula de ORIGEN
+                // Filtra EXCLUSIVAMENTE cotejando la matrícula de Origen
                 if (origenLimpio.includes(query)) {
                     coincidencias.push({ clave: k, data: item });
                     if (coincidencias.length >= 10) break;
@@ -377,7 +481,7 @@
             consultarMatriculaDirecta();
         }
 
-        // Consulta Individual BLINDADA (Busca únicamente en el campo Origen o clave correspondiente)
+        // 9. Consulta Individual BLINDADA (Prioriza estrictamente la coincidencia por Origen 040)
         function consultarMatriculaDirecta() {
             let inputVal = document.getElementById('inputMatricula').value;
             let container = document.getElementById('resultadoContainer');
@@ -399,12 +503,13 @@
                         La entrada <strong class="font-mono text-slate-900">${inputVal || 'vacía'}</strong> no es válida. Ingrese solo números de origen (1 a 6 dígitos).
                     </p>
                 `;
+                mostrarToast("Formato o caracteres no permitidos", "error");
                 return;
             }
 
             let resultadoEncontrado = null;
 
-            // Búsqueda exhaustiva comparando estrictamente el número limpio con la matrícula de ORIGEN (item.o)
+            // Búsqueda exhaustiva comparando estrictamente la matrícula de ORIGEN (item.o)
             let llaves = Object.keys(dbMatriculas);
             for (let k of llaves) {
                 let item = dbMatriculas[k];
@@ -430,13 +535,24 @@
                             <span class="block text-[11px] text-slate-400 uppercase font-bold mb-1 tracking-wider">Origen (Barranquilla 040)</span>
                             <span class="text-xl font-mono font-extrabold text-slate-800">${resultadoEncontrado.o}</span>
                         </div>
-                        <div class="bg-white p-4 rounded-xl border border-emerald-200 shadow-sm">
+                        <div class="bg-white p-4 rounded-xl border border-emerald-200 shadow-sm relative group">
                             <span class="block text-[11px] text-emerald-700 uppercase font-bold mb-1 tracking-wider">Destino (Soledad 041)</span>
-                            <span class="text-xl font-mono font-extrabold text-emerald-600">${resultadoEncontrado.d}</span>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xl font-mono font-extrabold text-emerald-600">${resultadoEncontrado.d}</span>
+                                <button 
+                                    onclick="copiarAlPortapapeles('${resultadoEncontrado.d}')" 
+                                    title="Copiar Matrícula Destino"
+                                    class="no-print bg-emerald-100 hover:bg-emerald-200 text-emerald-800 p-2 rounded-lg text-xs font-bold transition flex items-center gap-1"
+                                >
+                                    📋 Copiar
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <p class="text-xs text-slate-500 mt-4 text-center font-medium italic">Este inmueble actualmente corresponde al Círculo Registral de Soledad (041).</p>
                 `;
+                agregarAlHistorial(resultadoEncontrado.o);
+                mostrarToast(`Traslado encontrado: ${resultadoEncontrado.d}`, "success");
             } else {
                 card.className = "border border-amber-200 bg-amber-50/50 rounded-2xl p-6 text-center shadow-sm";
                 card.innerHTML = `
@@ -447,17 +563,61 @@
                         La matrícula de origen <strong class="font-mono text-slate-900">${inputVal}</strong> no registra antecedentes de traslado a Soledad en la base de datos.
                     </p>
                 `;
+                mostrarToast("Matrícula sin antecedentes de traslado", "info");
             }
         }
 
-        // Búsqueda por Lote (Estrictamente por Origen)
+        // 10. Función para Copiar al Portapapeles con Confirmación Toast
+        function copiarAlPortapapeles(texto) {
+            navigator.clipboard.writeText(texto).then(() => {
+                mostrarToast(`¡Copiado al portapapeles: ${texto}!`, "success");
+            }).catch(err => {
+                console.error("Error al copiar:", err);
+            });
+        }
+
+        // 11. Gestión de Historial de Búsquedas Recientes
+        function agregarAlHistorial(matriculaOrigen) {
+            if (!historialBusquedas.includes(matriculaOrigen)) {
+                historialBusquedas.unshift(matriculaOrigen);
+                if (historialBusquedas.length > 5) historialBusquedas.pop();
+                renderizarHistorial();
+            }
+        }
+
+        function renderizarHistorial() {
+            const container = document.getElementById('historialContainer');
+            const chips = document.getElementById('historialChips');
+
+            if (historialBusquedas.length === 0) {
+                container.classList.add('hidden');
+                return;
+            }
+
+            container.classList.remove('hidden');
+            chips.innerHTML = historialBusquedas.map(m => `
+                <button 
+                    onclick="reconsultarHistorial('${m}')"
+                    class="bg-slate-200 hover:bg-emerald-100 text-slate-700 hover:text-emerald-900 text-xs font-mono font-bold px-2.5 py-1 rounded-lg transition border border-slate-300"
+                >
+                    ${m}
+                </button>
+            `).join('');
+        }
+
+        function reconsultarHistorial(mat) {
+            document.getElementById('inputMatricula').value = mat;
+            consultarMatriculaDirecta();
+        }
+
+        // 12. Búsqueda por Lote (Masiva)
         function procesarLote() {
             let text = document.getElementById('inputLote').value;
             let tbody = document.getElementById('tablaLoteBody');
             let container = document.getElementById('resultadoLoteContainer');
 
             if (!text.trim()) {
-                alert("Ingrese al menos una matrícula en el cuadro de texto.");
+                mostrarToast("Ingrese al menos una matrícula en el cuadro de texto.", "error");
                 return;
             }
 
@@ -465,6 +625,7 @@
             if (lineas.length === 0) return;
 
             tbody.innerHTML = '';
+            resultadosLoteMemoria = [];
             container.classList.remove('hidden');
 
             lineas.forEach((item, index) => {
@@ -483,6 +644,14 @@
                 }
 
                 let existe = data !== null;
+
+                // Guardar en memoria para exportación CSV
+                resultadosLoteMemoria.push({
+                    ingresado: item,
+                    estado: !esValido ? 'INVALIDO' : existe ? 'TRASLADADO' : 'SIN_REGISTRO',
+                    origen: existe ? data.o : '-',
+                    destino: existe ? data.d : '-'
+                });
 
                 let tr = document.createElement('tr');
                 tr.className = index % 2 === 0 ? "bg-white" : "bg-slate-50/60";
@@ -505,13 +674,38 @@
                 `;
                 tbody.appendChild(tr);
             });
+
+            mostrarToast(`Lote procesado: ${lineas.length} folios evaluados`, "success");
+        }
+
+        // 13. Exportación del Lote a Archivo CSV (Excel)
+        function exportarLoteCSV() {
+            if (resultadosLoteMemoria.length === 0) return;
+
+            let csvContent = "data:text/csv;charset=utf-8,Item,Ingresado,Estado,Matricula_Origen,Matricula_Destino\n";
+            
+            resultadosLoteMemoria.forEach((row, index) => {
+                csvContent += `${index + 1},${row.ingresado},${row.estado},${row.origen},${row.destino}\n`;
+            });
+
+            let encodedUri = encodeURI(csvContent);
+            let link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Reporte_Traslados_Lote_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            mostrarToast("Planilla CSV descargada exitosamente", "success");
         }
 
         function limpiarLote() {
             document.getElementById('inputLote').value = '';
             document.getElementById('resultadoLoteContainer').classList.add('hidden');
+            resultadosLoteMemoria = [];
         }
 
+        // 14. Función para Generar Impresión Oficial en PDF
         function imprimirPagina() {
             const ahora = new Date();
             const fechaStr = "Fecha de consulta: " + ahora.toLocaleDateString('es-CO') + " - " + ahora.toLocaleTimeString('es-CO');
