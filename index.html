@@ -280,9 +280,15 @@
             }
         }
 
+        // Función auxiliar global para limpiar y extraer los dígitos limpios
+        function limpiarNumero(val) {
+            if (!val) return "";
+            let partes = String(val).split('-');
+            return partes[partes.length - 1].replace(/\D/g, '').trim();
+        }
+
         // Sanitización en tiempo real mientras el usuario escribe en el input individual
         function sanitizarEntradaDirecta(inputElement) {
-            // Elimina automáticamente cualquier símbolo o letra excepto números y el guion '-'
             inputElement.value = inputElement.value.replace(/[^0-9-]/g, '');
         }
 
@@ -291,15 +297,12 @@
             if (!val) return null;
             let limpio = val.trim();
 
-            // Si contiene cualquier símbolo especial o letra no permitida, es inválido
             if (/[^0-9\-\s]/.test(limpio)) {
                 return null;
             }
 
-            let partes = limpio.split('-');
-            let numStr = partes[partes.length - 1].trim();
+            let numStr = limpiarNumero(limpio);
 
-            // Verificar estrictamente que la parte numérica tenga de 1 a 6 dígitos
             if (!/^\d{1,6}$/.test(numStr)) {
                 return null; 
             }
@@ -309,10 +312,10 @@
                 return null;
             }
 
-            return numStr; // Retorna el número sanitizado
+            return numStr; 
         }
 
-        // Búsqueda Parcial con Filtro
+        // Búsqueda Parcial con Filtro Actualizada
         function buscarCoincidenciasParciales() {
             let inputVal = document.getElementById('inputMatricula').value;
             let dropdown = document.getElementById('dropdownSugerencias');
@@ -329,7 +332,10 @@
 
             for (let k of llaves) {
                 let item = dbMatriculas[k];
-                if (k.includes(query) || item.o.includes(query) || item.d.includes(query)) {
+                let origenLimpio = limpiarNumero(item.o);
+                let destinoLimpio = limpiarNumero(item.d);
+                
+                if (k.includes(query) || origenLimpio.includes(query) || destinoLimpio.includes(query)) {
                     coincidencias.push({ clave: k, data: item });
                     if (coincidencias.length >= 10) break;
                 }
@@ -338,7 +344,7 @@
             if (coincidencias.length > 0) {
                 dropdown.innerHTML = coincidencias.map(c => `
                     <div 
-                        onclick="seleccionarSugerencia('${c.clave}')" 
+                        onclick="seleccionarSugerencia('${c.data.o}')" 
                         class="p-3 hover:bg-slate-100 cursor-pointer border-b last:border-0 border-slate-100 flex justify-between items-center text-sm"
                     >
                         <div>
@@ -358,92 +364,89 @@
             }
         }
 
-        function seleccionarSugerencia(clave) {
-            document.getElementById('inputMatricula').value = clave;
+        function seleccionarSugerencia(claveOrigen) {
+            document.getElementById('inputMatricula').value = claveOrigen;
             document.getElementById('dropdownSugerencias').classList.add('hidden');
             consultarMatriculaDirecta();
         }
 
-        // Consulta Individual Corregida (Prioriza Matrícula de Origen 040)
-function consultarMatriculaDirecta() {
-    let inputVal = document.getElementById('inputMatricula').value;
-    let container = document.getElementById('resultadoContainer');
-    let card = document.getElementById('resultadoCard');
-    let dropdown = document.getElementById('dropdownSugerencias');
+        // Consulta Individual Corregida y Robusta
+        function consultarMatriculaDirecta() {
+            let inputVal = document.getElementById('inputMatricula').value;
+            let container = document.getElementById('resultadoContainer');
+            let card = document.getElementById('resultadoCard');
+            let dropdown = document.getElementById('dropdownSugerencias');
 
-    dropdown.classList.add('hidden');
+            dropdown.classList.add('hidden');
 
-    let numeroLimpio = validarYLimpiarMatricula(inputVal);
+            let numeroLimpio = validarYLimpiarMatricula(inputVal);
+            container.classList.remove('hidden');
 
-    container.classList.remove('hidden');
+            if (!numeroLimpio) {
+                card.className = "border border-red-300 bg-red-50/50 rounded-lg p-6 text-center shadow-sm";
+                card.innerHTML = `
+                    <span class="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                        Formato o Caracteres Inválidos
+                    </span>
+                    <p class="text-slate-700 text-sm mt-3">
+                        La entrada <strong class="font-mono text-slate-900">${inputVal || 'vacía'}</strong> no es válida. Ingrese solo números (de 1 a 6 dígitos).
+                    </p>
+                `;
+                return;
+            }
 
-    if (!numeroLimpio) {
-        card.className = "border border-red-300 bg-red-50/50 rounded-lg p-6 text-center shadow-sm";
-        card.innerHTML = `
-            <span class="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                Formato o Caracteres Inválidos
-            </span>
-            <p class="text-slate-700 text-sm mt-3">
-                La entrada <strong class="font-mono text-slate-900">${inputVal || 'vacía'}</strong> no es válida. Ingrese solo números (de 1 a 6 dígitos).
-            </p>
-        `;
-        return;
-    }
+            let resultadoEncontrado = null;
 
-    // Buscar la coincidencia exacta donde el número de ORIGEN (040) sea igual al número buscado
-    let resultadoEncontrado = null;
+            // 1. Verificar acceso directo por clave (si coincide exactamente con el número limpio)
+            if (dbMatriculas.hasOwnProperty(numeroLimpio)) {
+                resultadoEncontrado = dbMatriculas[numeroLimpio];
+            } else {
+                // 2. Búsqueda exhaustiva por valor de origen (040)
+                let llaves = Object.keys(dbMatriculas);
+                for (let k of llaves) {
+                    let item = dbMatriculas[k];
+                    if (limpiarNumero(item.o) === numeroLimpio) {
+                        resultadoEncontrado = item;
+                        break;
+                    }
+                }
+            }
 
-    // 1. Buscar primero en las llaves directas (si está indexado por Origen)
-    if (dbMatriculas.hasOwnProperty(numeroLimpio) && dbMatriculas[numeroLimpio].o.includes(numeroLimpio)) {
-        resultadoEncontrado = dbMatriculas[numeroLimpio];
-    } else {
-        // 2. Si no coincide la llave directa, iterar para encontrar coincidencia exacta con la de Origen (040)
-        let llaves = Object.keys(dbMatriculas);
-        for (let k of llaves) {
-            let item = dbMatriculas[k];
-            let origenLimpio = limpiarNumero(item.o);
-            if (origenLimpio === numeroLimpio) {
-                resultadoEncontrado = item;
-                break;
+            if (resultadoEncontrado) {
+                card.className = "border border-emerald-300 bg-emerald-50/50 rounded-lg p-6 shadow-sm";
+                card.innerHTML = `
+                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-emerald-200">
+                        <span class="bg-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                            ¡Traslado Confirmado!
+                        </span>
+                        <button onclick="imprimirPagina()" class="no-print text-xs font-bold text-emerald-800 hover:text-emerald-950 underline flex items-center gap-1">
+                            🖨️ Imprimir Ficha
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                            <span class="block text-xs text-slate-500 uppercase font-bold mb-1">Origen (Barranquilla 040)</span>
+                            <span class="text-xl font-mono font-bold text-slate-800">${resultadoEncontrado.o}</span>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg border border-emerald-200 shadow-sm">
+                            <span class="block text-xs text-emerald-700 uppercase font-bold mb-1">Destino (Soledad 041)</span>
+                            <span class="text-xl font-mono font-bold text-emerald-700">${resultadoEncontrado.d}</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-4 text-center italic">Este inmueble actualmente corresponde al Círculo Registral de Soledad (041).</p>
+                `;
+            } else {
+                card.className = "border border-amber-300 bg-amber-50/50 rounded-lg p-6 text-center shadow-sm";
+                card.innerHTML = `
+                    <span class="bg-amber-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                        Sin Registro de Traslado
+                    </span>
+                    <p class="text-slate-700 text-sm mt-3">
+                        La matrícula <strong class="font-mono text-slate-900">${inputVal}</strong> no registra antecedentes de traslado a Soledad en la base de datos.
+                    </p>
+                `;
             }
         }
-    }
-
-    if (resultadoEncontrado) {
-        card.className = "border border-emerald-300 bg-emerald-50/50 rounded-lg p-6 shadow-sm";
-        card.innerHTML = `
-            <div class="flex items-center justify-between mb-4 pb-3 border-b border-emerald-200">
-                <span class="bg-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                    ¡Traslado Confirmado!
-                </span>
-                <button onclick="imprimirPagina()" class="no-print text-xs font-bold text-emerald-800 hover:text-emerald-950 underline flex items-center gap-1">
-                    🖨️ Imprimir Ficha
-                </button>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
-                    <span class="block text-xs text-slate-500 uppercase font-bold mb-1">Origen (Barranquilla 040)</span>
-                    <span class="text-xl font-mono font-bold text-slate-800">${resultadoEncontrado.o}</span>
-                </div>
-                <div class="bg-white p-4 rounded-lg border border-emerald-200 shadow-sm">
-                    <span class="block text-xs text-emerald-700 uppercase font-bold mb-1">Destino (Soledad 041)</span>
-                    <span class="text-xl font-mono font-bold text-emerald-700">${resultadoEncontrado.d}</span>
-                </div>
-            </div>
-            <p class="text-xs text-slate-500 mt-4 text-center italic">Este inmueble actualmente corresponde al Círculo Registral de Soledad (041).</p>
-        `;
-    } else {
-        card.className = "border border-amber-300 bg-amber-50/50 rounded-lg p-6 text-center shadow-sm";
-        card.innerHTML = `
-            <span class="bg-amber-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                Sin Registro de Traslado
-            </span>
-            <p class="text-slate-700 text-sm mt-3">
-                La matrícula <strong class="font-mono text-slate-900">${inputVal}</strong> no registra antecedentes de traslado a Soledad en la base de datos.
-            </p>
-        `;
-    }
-}
 
         // Búsqueda por Lote con Filtro de Seguridad
         function procesarLote() {
@@ -465,8 +468,23 @@ function consultarMatriculaDirecta() {
             lineas.forEach((item, index) => {
                 let numLimpio = validarYLimpiarMatricula(item);
                 let esValido = numLimpio !== null;
-                let existe = esValido && dbMatriculas.hasOwnProperty(numLimpio);
-                let data = existe ? dbMatriculas[numLimpio] : null;
+                
+                let data = null;
+                if (esValido) {
+                    if (dbMatriculas.hasOwnProperty(numLimpio)) {
+                        data = dbMatriculas[numLimpio];
+                    } else {
+                        let llaves = Object.keys(dbMatriculas);
+                        for (let k of llaves) {
+                            if (limpiarNumero(dbMatriculas[k].o) === numLimpio) {
+                                data = dbMatriculas[k];
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                let existe = data !== null;
 
                 let tr = document.createElement('tr');
                 tr.className = index % 2 === 0 ? "bg-white" : "bg-slate-50";
