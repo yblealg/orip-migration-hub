@@ -74,7 +74,7 @@
                     </div>
                 </div>
 
-                <!-- Imagen OTI tomada de tu repositorio sistema-modular-core -->
+                <!-- Imagen OTI -->
                 <div class="mt-6 rounded-lg overflow-hidden border border-slate-700 shadow-md">
                     <img 
                         src="https://raw.githubusercontent.com/yblealg/sistema-modular-core/main/OTI.jpg" 
@@ -84,7 +84,7 @@
                     >
                 </div>
 
-                <!-- Logo SNR tomado de tu repositorio sistema-modular-core -->
+                <!-- Logo SNR -->
                 <div class="mt-4 bg-white p-2 rounded-lg border border-slate-700 shadow-md">
                     <img 
                         src="https://raw.githubusercontent.com/yblealg/sistema-modular-core/main/logoSNR.jpg" 
@@ -121,7 +121,7 @@
                 </div>
             </header>
 
-            <!-- Encabezado oculto que solo aparece al Imprimir -->
+            <!-- Encabezado oculto para Imprimir -->
             <div class="print-header hidden">
                 <h2 style="font-size: 18pt; font-weight: bold; margin: 0;">REPORTE OFICIAL DE CONSULTA DE MATRÍCULAS</h2>
                 <p style="font-size: 10pt; color: #475569; margin-top: 4px;">Sistema de Verificación de Traslados ORIP Barranquilla (040) / Soledad (041)</p>
@@ -135,18 +135,18 @@
                 <!-- ================= MÓDULO 1: BÚSQUEDA INDIVIDUAL Y PARCIAL ================= -->
                 <div id="seccionIndividual" class="max-w-2xl mx-auto bg-white rounded-xl shadow-lg border border-slate-200 p-6 sm:p-8 relative">
                     <p class="text-slate-600 text-sm mb-4 text-center">
-                        Ingrese el número completo o un segmento parcial de la matrícula (ej. <span class="font-mono bg-slate-100 px-1 py-0.5 rounded text-slate-800">353927</span> o <span class="font-mono bg-slate-100 px-1 py-0.5 rounded text-slate-800">040-353927</span>).
+                        Ingrese el número de matrícula (1 a 6 dígitos, ej: <span class="font-mono bg-slate-100 px-1 py-0.5 rounded text-slate-800">353927</span> o <span class="font-mono bg-slate-100 px-1 py-0.5 rounded text-slate-800">040-353927</span>). No se permiten letras ni símbolos especiales.
                     </p>
 
-                    <!-- Campo de Texto con Lista de Sugerencias en Tiempo Real -->
+                    <!-- Campo de Texto con Filtro Anti-Caracteres Especiales -->
                     <div class="relative no-print">
                         <div class="flex flex-col sm:flex-row gap-3">
                             <input 
                                 type="text" 
                                 id="inputMatricula" 
-                                placeholder="Escriba para buscar coincidencias..." 
+                                placeholder="Ej. 353927" 
                                 class="flex-grow border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-center sm:text-left text-lg shadow-sm"
-                                oninput="buscarCoincidenciasParciales()"
+                                oninput="sanitizarEntradaDirecta(this); buscarCoincidenciasParciales();"
                                 autocomplete="off"
                                 autofocus
                             >
@@ -159,17 +159,13 @@
                             </button>
                         </div>
 
-                        <!-- Desplegable de Coincidencias en Tiempo Real -->
-                        <div id="dropdownSugerencias" class="absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-60 overflow-y-auto hidden">
-                            <!-- Las sugerencias se generan con JS -->
-                        </div>
+                        <!-- Desplegable de Coincidencias -->
+                        <div id="dropdownSugerencias" class="absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-60 overflow-y-auto hidden"></div>
                     </div>
 
                     <!-- Tarjeta de Resultado Individual -->
                     <div id="resultadoContainer" class="mt-8 hidden print-area">
-                        <div id="resultadoCard" class="border rounded-lg p-5 transition-all">
-                            <!-- Se llena dinámicamente mediante JavaScript -->
-                        </div>
+                        <div id="resultadoCard" class="border rounded-lg p-5 transition-all"></div>
                     </div>
                 </div>
 
@@ -177,14 +173,14 @@
                 <div id="seccionLote" class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg border border-slate-200 p-6 sm:p-8 hidden">
                     <h2 class="text-lg font-bold text-slate-900 mb-2">Consulta Masiva de Folios</h2>
                     <p class="text-slate-600 text-sm mb-4">
-                        Pegue o escriba varias matrículas separadas por saltos de línea, comas o espacios:
+                        Pegue o escriba varias matrículas separadas por saltos de línea, comas o espacios (solo números de 1 a 6 dígitos; letras y caracteres especiales serán rechazados):
                     </p>
 
                     <div class="no-print">
                         <textarea 
                             id="inputLote" 
                             rows="5" 
-                            placeholder="Ejemplo:&#10;040-353927&#10;353928, 040-12345&#10;353929"
+                            placeholder="Ejemplo:&#10;040-353927&#10;353928, 040-12345"
                             class="w-full border border-slate-300 rounded-lg p-3 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 mb-4 shadow-sm"
                         ></textarea>
 
@@ -228,9 +224,7 @@
                                         <th class="p-3">Destino (Soledad 041)</th>
                                     </tr>
                                 </thead>
-                                <tbody id="tablaLoteBody" class="divide-y divide-slate-200 font-mono">
-                                    <!-- Filas dinámicas -->
-                                </tbody>
+                                <tbody id="tablaLoteBody" class="divide-y divide-slate-200 font-mono"></tbody>
                             </table>
                         </div>
                     </div>
@@ -246,30 +240,27 @@
 
     </div>
 
-    <!-- Lógica de Búsqueda y Navegación con JavaScript -->
+    <!-- Lógica de Búsqueda y Filtros de Seguridad -->
     <script>
         let dbMatriculas = {};
 
-        // Cargar el JSON automáticamente al iniciar
         window.addEventListener('DOMContentLoaded', async () => {
             try {
                 let response = await fetch('traslados.json');
                 dbMatriculas = await response.json();
-                console.log("Base de datos de matrículas cargada correctamente.");
+                console.log("Base de datos cargada correctamente.");
             } catch (error) {
-                console.error("Error al cargar traslados.json:", error);
+                console.error("Error al cargar el JSON:", error);
                 alert("No se pudo cargar la base de datos de traslados.");
             }
         });
 
-        // Permitir buscar presionando Enter en el input individual
         document.getElementById('inputMatricula').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 consultarMatriculaDirecta();
             }
         });
 
-        // Alternar entre modo Búsqueda Individual y Por Lote
         function cambiarModo(modo) {
             const secInd = document.getElementById('seccionIndividual');
             const secLot = document.getElementById('seccionLote');
@@ -289,19 +280,45 @@
             }
         }
 
-        // Extraer solo los dígitos numéricos
-        function limpiarNumero(val) {
-            let partes = val.split('-');
-            return partes[partes.length - 1].replace(/\D/g, '').trim();
+        // Sanitización en tiempo real mientras el usuario escribe en el input individual
+        function sanitizarEntradaDirecta(inputElement) {
+            // Elimina automáticamente cualquier símbolo o letra excepto números y el guion '-'
+            inputElement.value = inputElement.value.replace(/[^0-9-]/g, '');
         }
 
-        // Búsqueda en Tiempo Real (Parcial / Coincidencias)
-        function buscarCoincidenciasParciales() {
-            let inputVal = document.getElementById('inputMatricula').value.trim();
-            let dropdown = document.getElementById('dropdownSugerencias');
-            let query = limpiarNumero(inputVal);
+        // Validación estricta de seguridad: Rechaza letras, símbolos y longitudes inválidas
+        function validarYLimpiarMatricula(val) {
+            if (!val) return null;
+            let limpio = val.trim();
 
-            if (query.length < 3) {
+            // Si contiene cualquier símbolo especial o letra no permitida, es inválido
+            if (/[^0-9\-\s]/.test(limpio)) {
+                return null;
+            }
+
+            let partes = limpio.split('-');
+            let numStr = partes[partes.length - 1].trim();
+
+            // Verificar estrictamente que la parte numérica tenga de 1 a 6 dígitos
+            if (!/^\d{1,6}$/.test(numStr)) {
+                return null; 
+            }
+
+            let num = parseInt(numStr, 10);
+            if (num < 1 || num > 999999) {
+                return null;
+            }
+
+            return numStr; // Retorna el número sanitizado
+        }
+
+        // Búsqueda Parcial con Filtro
+        function buscarCoincidenciasParciales() {
+            let inputVal = document.getElementById('inputMatricula').value;
+            let dropdown = document.getElementById('dropdownSugerencias');
+            let query = validarYLimpiarMatricula(inputVal);
+
+            if (!query || query.length < 3) {
                 dropdown.classList.add('hidden');
                 dropdown.innerHTML = '';
                 return;
@@ -314,7 +331,7 @@
                 let item = dbMatriculas[k];
                 if (k.includes(query) || item.o.includes(query) || item.d.includes(query)) {
                     coincidencias.push({ clave: k, data: item });
-                    if (coincidencias.length >= 10) break; // Límite de sugerencias
+                    if (coincidencias.length >= 10) break;
                 }
             }
 
@@ -347,22 +364,31 @@
             consultarMatriculaDirecta();
         }
 
-        // Consulta Individual
+        // Consulta Individual con Control de Errores
         function consultarMatriculaDirecta() {
-            let inputVal = document.getElementById('inputMatricula').value.trim();
+            let inputVal = document.getElementById('inputMatricula').value;
             let container = document.getElementById('resultadoContainer');
             let card = document.getElementById('resultadoCard');
             let dropdown = document.getElementById('dropdownSugerencias');
 
             dropdown.classList.add('hidden');
 
-            if (!inputVal) {
-                alert("Por favor ingrese un número de matrícula.");
+            let numeroLimpio = validarYLimpiarMatricula(inputVal);
+
+            container.classList.remove('hidden');
+
+            if (!numeroLimpio) {
+                card.className = "border border-red-300 bg-red-50/50 rounded-lg p-6 text-center shadow-sm";
+                card.innerHTML = `
+                    <span class="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                        Formato o Caracteres Inválidos
+                    </span>
+                    <p class="text-slate-700 text-sm mt-3">
+                        La entrada <strong class="font-mono text-slate-900">${inputVal || 'vacía'}</strong> no es válida. No se permiten letras, espacios vacíos ni símbolos especiales. Ingrese solo números (de 1 a 6 dígitos).
+                    </p>
+                `;
                 return;
             }
-
-            let numeroLimpio = limpiarNumero(inputVal);
-            container.classList.remove('hidden');
 
             if (dbMatriculas.hasOwnProperty(numeroLimpio)) {
                 let data = dbMatriculas[numeroLimpio];
@@ -395,19 +421,19 @@
                         Sin Registro de Traslado
                     </span>
                     <p class="text-slate-700 text-sm mt-3">
-                        La matrícula <strong class="font-mono text-slate-900">${inputVal}</strong> no registra traslado a Soledad en la base de datos analizada.
+                        La matrícula <strong class="font-mono text-slate-900">${inputVal}</strong> no registra antecedentes de traslado a Soledad en la base de datos.
                     </p>
                 `;
             }
         }
 
-        // Búsqueda por Lote
+        // Búsqueda por Lote con Filtro de Seguridad
         function procesarLote() {
-            let text = document.getElementById('inputLote').value.trim();
+            let text = document.getElementById('inputLote').value;
             let tbody = document.getElementById('tablaLoteBody');
             let container = document.getElementById('resultadoLoteContainer');
 
-            if (!text) {
+            if (!text.trim()) {
                 alert("Ingrese al menos una matrícula en el cuadro de texto.");
                 return;
             }
@@ -419,22 +445,27 @@
             container.classList.remove('hidden');
 
             lineas.forEach((item, index) => {
-                let numLimpio = limpiarNumero(item);
-                let existe = dbMatriculas.hasOwnProperty(numLimpio);
+                let numLimpio = validarYLimpiarMatricula(item);
+                let esValido = numLimpio !== null;
+                let existe = esValido && dbMatriculas.hasOwnProperty(numLimpio);
                 let data = existe ? dbMatriculas[numLimpio] : null;
 
                 let tr = document.createElement('tr');
                 tr.className = index % 2 === 0 ? "bg-white" : "bg-slate-50";
 
+                let estadoHtml = '';
+                if (!esValido) {
+                    estadoHtml = '<span class="bg-red-100 text-red-800 text-xs px-2 py-0.5 rounded font-bold">CARACTERES/RANGO INVÁLIDO</span>';
+                } else if (existe) {
+                    estadoHtml = '<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded font-bold">TRASLADADO</span>';
+                } else {
+                    estadoHtml = '<span class="bg-slate-200 text-slate-600 text-xs px-2 py-0.5 rounded">SIN REGISTRO</span>';
+                }
+
                 tr.innerHTML = `
                     <td class="p-3 text-slate-400 text-xs">${index + 1}</td>
                     <td class="p-3 font-bold text-slate-800">${item}</td>
-                    <td class="p-3">
-                        ${existe 
-                            ? '<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded font-bold">TRASLADADO</span>'
-                            : '<span class="bg-slate-200 text-slate-600 text-xs px-2 py-0.5 rounded">SIN REGISTRO</span>'
-                        }
-                    </td>
+                    <td class="p-3">${estadoHtml}</td>
                     <td class="p-3 text-slate-700">${existe ? data.o : '-'}</td>
                     <td class="p-3 font-bold ${existe ? 'text-emerald-600' : 'text-slate-400'}">${existe ? data.d : '-'}</td>
                 `;
@@ -447,7 +478,6 @@
             document.getElementById('resultadoLoteContainer').classList.add('hidden');
         }
 
-        // Función para imprimir o guardar en PDF
         function imprimirPagina() {
             const ahora = new Date();
             const fechaStr = "Fecha de consulta: " + ahora.toLocaleDateString('es-CO') + " - " + ahora.toLocaleTimeString('es-CO');
