@@ -8,7 +8,7 @@
     <!-- Tailwind CSS para diseño institucional moderno -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Firebase App (Modular SDK) -->
+    <!-- Firebase App & Auth (SDK Modular Integrado) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -16,14 +16,14 @@
         // ==========================================
         // 🔑 TUS CREDENCIALES REALES DE FIREBASE
         // ==========================================
-        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyBe-dK93A9wXUIphRs90MEfCuxUEA1Hh3Y",
             authDomain: "orip-migracion.firebaseapp.com",
             projectId: "orip-migracion",
             storageBucket: "orip-migracion.firebasestorage.app",
             messagingSenderId: "881008519959",
-            appId: "1:881008519959:web:cd3b429344f280de68e552"
+            appId: "1:881008519959:web:cd3b429344f280de68e552",
+            measurementId: "G-Q5WLX9H4WD"
         };
 
         // Inicializar Firebase
@@ -59,11 +59,9 @@
 
             signInWithEmailAndPassword(auth, email, pass)
                 .then((userCredential) => {
-                    // Login exitoso
                     console.log("Acceso concedido:", userCredential.user.email);
                 })
                 .catch((error) => {
-                    // Error de autenticación
                     errorBox.textContent = "Credenciales incorrectas o usuario no autorizado.";
                     errorBox.classList.remove('hidden');
                 });
@@ -155,7 +153,7 @@
     <!-- Contenedor Flotante de Notificaciones (Toasts) -->
     <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none no-print"></div>
 
-    <!-- ================= APLICACIÓN PRINCIPAL (BLOQUEADA HASTA LOGUEARSE) ================= -->
+    <!-- ================= APLICACIÓN PRINCIPAL ================= -->
     <div id="appContent" class="hidden flex flex-col md:flex-row min-h-screen flex-grow">
 
         <!-- Panel Lateral Izquierdo -->
@@ -237,7 +235,7 @@
                     </div>
                 </div>
 
-                <!-- Módulo por Lote (Corregido con limpieza de tabulaciones de Excel) -->
+                <!-- Módulo por Lote -->
                 <div id="seccionLote" class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl border border-slate-200/80 p-6 sm:p-8 hidden">
                     <h2 class="text-lg font-bold text-slate-900 mb-1">Consulta Masiva de Folios</h2>
                     <p class="text-slate-600 text-sm mb-4">Pegue las matrículas copiadas desde Excel (soporta una o dos columnas):</p>
