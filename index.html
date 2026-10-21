@@ -9,7 +9,7 @@
     <style>
         /* Estilos específicos para impresión / PDF */
         @media print {
-            header, footer, .no-print, button, input, textarea {
+            header, footer, .no-print, button, input, textarea, aside {
                 display: none !important;
             }
             body {
@@ -30,149 +30,221 @@
                 border-bottom: 2px solid #0f172a;
                 padding-bottom: 10px;
             }
+            main {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
         }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col justify-between font-sans">
 
-    <!-- Encabezado Inspirado en SNR / ORIP -->
-    <header class="bg-slate-900 text-white py-6 shadow-md border-b-4 border-emerald-500">
-        <div class="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <!-- Layout Principal: Lateral + Contenido -->
+    <div class="flex flex-col md:flex-row min-h-screen flex-grow">
+
+        <!-- ================= PANEL LATERAL IZQUIERDO (SIDEBAR) ================= -->
+        <aside class="w-full md:w-72 bg-slate-800 text-white p-6 flex flex-col justify-between border-r-4 border-emerald-500 shadow-xl no-print shrink-0">
             <div>
-                <h1 class="text-2xl font-bold tracking-tight text-white">Consulta de Matrículas Inmobiliarias</h1>
-                <p class="text-slate-400 text-xs sm:text-sm mt-1">Histórico de Traslados: Círculo Registral Barranquilla (040) &rarr; Soledad (041)</p>
-            </div>
-            <div class="flex gap-2 no-print">
-                <button onclick="cambiarModo('individual')" id="btnTabIndividual" class="px-4 py-2 text-xs font-bold rounded-lg transition bg-emerald-500 text-slate-950 shadow">
-                    Búsqueda Individual
-                </button>
-                <button onclick="cambiarModo('lote')" id="btnTabLote" class="px-4 py-2 text-xs font-bold rounded-lg transition bg-slate-800 text-slate-300 hover:bg-slate-700">
-                    Búsqueda por Lote
-                </button>
-            </div>
-        </div>
-    </header>
+                <!-- Identificador Principal -->
+                <div class="border-b border-slate-700 pb-4 mb-5">
+                    <h1 class="text-xl font-bold tracking-wide text-white">SNR SIR</h1>
+                    <p class="text-slate-300 text-sm font-medium">ORIP Barranquilla / Soledad</p>
+                </div>
 
-    <!-- Encabezado oculto que solo aparece al Imprimir -->
-    <div class="print-header hidden">
-        <h2 style="font-size: 18pt; font-weight: bold; margin: 0;">REPORTE OFICIAL DE CONSULTA DE MATRÍCULAS</h2>
-        <p style="font-size: 10pt; color: #475569; margin-top: 4px;">Sistema de Verificación de Traslados ORIP Barranquilla (040) / Soledad (041)</p>
-        <p id="printFechaHora" style="font-size: 9pt; color: #64748b; margin-top: 2px;"></p>
+                <!-- Datos del Funcionario y Ficha Técnica -->
+                <div class="space-y-4 text-xs">
+                    <div>
+                        <span class="block text-slate-400 font-bold uppercase tracking-wider">Funcionario:</span>
+                        <span class="text-sm font-semibold text-white">Yair B. Leal Guerra</span>
+                    </div>
+
+                    <div>
+                        <span class="block text-slate-400 font-bold uppercase tracking-wider">Auxiliar:</span>
+                        <span class="text-slate-200">Administrativo 4044_13</span>
+                    </div>
+
+                    <div>
+                        <span class="block text-slate-400 font-bold uppercase tracking-wider">Módulo:</span>
+                        <span class="text-slate-200">Traslado de Matrículas (040 &rarr; 041)</span>
+                    </div>
+
+                    <div>
+                        <span class="block text-slate-400 font-bold uppercase tracking-wider">Norma / Referencia:</span>
+                        <span class="text-slate-200">Res. 1726 del 29 de Enero de 2026</span>
+                    </div>
+                </div>
+
+                <!-- Imagen OTI tomada de tu repositorio sistema-modular-core -->
+                <div class="mt-6 rounded-lg overflow-hidden border border-slate-700 shadow-md">
+                    <img 
+                        src="https://raw.githubusercontent.com/yblealg/sistema-modular-core/main/OTI.jpg" 
+                        alt="Asistente OTI" 
+                        class="w-full h-auto object-cover"
+                        onerror="this.style.display='none'"
+                    >
+                </div>
+
+                <!-- Logo SNR tomado de tu repositorio sistema-modular-core -->
+                <div class="mt-4 bg-white p-2 rounded-lg border border-slate-700 shadow-md">
+                    <img 
+                        src="https://raw.githubusercontent.com/yblealg/sistema-modular-core/main/logoSNR.jpg" 
+                        alt="Logo Superintendencia de Notariado y Registro" 
+                        class="w-full h-auto"
+                        onerror="this.src='https://raw.githubusercontent.com/yblealg/sistema-modular-core/main/logoSNR.png'"
+                    >
+                </div>
+            </div>
+
+            <!-- Pie del Panel Lateral -->
+            <div class="mt-8 pt-4 border-t border-slate-700 text-center">
+                <p class="text-xs text-emerald-400 font-bold">Migration Project</p>
+                <p class="text-[10px] text-slate-400">Versión 3.0</p>
+            </div>
+        </aside>
+
+        <!-- ================= CONTENIDO PRINCIPAL ================= -->
+        <div class="flex-grow flex flex-col justify-between">
+            
+            <!-- Encabezado Superior -->
+            <header class="bg-slate-900 text-white py-5 px-6 shadow-md border-b border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-bold tracking-tight text-white">Consulta de Matrículas Inmobiliarias</h2>
+                    <p class="text-slate-400 text-xs mt-0.5">Histórico de Traslados: Círculo Registral Barranquilla (040) &rarr; Soledad (041)</p>
+                </div>
+                <div class="flex gap-2 no-print">
+                    <button onclick="cambiarModo('individual')" id="btnTabIndividual" class="px-4 py-2 text-xs font-bold rounded-lg transition bg-emerald-500 text-slate-950 shadow">
+                        Búsqueda Individual
+                    </button>
+                    <button onclick="cambiarModo('lote')" id="btnTabLote" class="px-4 py-2 text-xs font-bold rounded-lg transition bg-slate-800 text-slate-300 hover:bg-slate-700">
+                        Búsqueda por Lote
+                    </button>
+                </div>
+            </header>
+
+            <!-- Encabezado oculto que solo aparece al Imprimir -->
+            <div class="print-header hidden">
+                <h2 style="font-size: 18pt; font-weight: bold; margin: 0;">REPORTE OFICIAL DE CONSULTA DE MATRÍCULAS</h2>
+                <p style="font-size: 10pt; color: #475569; margin-top: 4px;">Sistema de Verificación de Traslados ORIP Barranquilla (040) / Soledad (041)</p>
+                <p style="font-size: 9pt; color: #334155; margin-top: 2px;">Funcionario: Yair B. Leal Guerra - Auxiliar Administrativo 4044_13</p>
+                <p id="printFechaHora" style="font-size: 9pt; color: #64748b; margin-top: 2px;"></p>
+            </div>
+
+            <!-- Área Central de Trabajo -->
+            <main class="max-w-4xl mx-auto px-4 py-8 flex-grow w-full">
+
+                <!-- ================= MÓDULO 1: BÚSQUEDA INDIVIDUAL Y PARCIAL ================= -->
+                <div id="seccionIndividual" class="max-w-2xl mx-auto bg-white rounded-xl shadow-lg border border-slate-200 p-6 sm:p-8 relative">
+                    <p class="text-slate-600 text-sm mb-4 text-center">
+                        Ingrese el número completo o un segmento parcial de la matrícula (ej. <span class="font-mono bg-slate-100 px-1 py-0.5 rounded text-slate-800">353927</span> o <span class="font-mono bg-slate-100 px-1 py-0.5 rounded text-slate-800">040-353927</span>).
+                    </p>
+
+                    <!-- Campo de Texto con Lista de Sugerencias en Tiempo Real -->
+                    <div class="relative no-print">
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <input 
+                                type="text" 
+                                id="inputMatricula" 
+                                placeholder="Escriba para buscar coincidencias..." 
+                                class="flex-grow border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-center sm:text-left text-lg shadow-sm"
+                                oninput="buscarCoincidenciasParciales()"
+                                autocomplete="off"
+                                autofocus
+                            >
+                            <button 
+                                onclick="consultarMatriculaDirecta()" 
+                                class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-6 py-3 rounded-lg transition shadow flex items-center justify-center gap-2"
+                            >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                Buscar
+                            </button>
+                        </div>
+
+                        <!-- Desplegable de Coincidencias en Tiempo Real -->
+                        <div id="dropdownSugerencias" class="absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-60 overflow-y-auto hidden">
+                            <!-- Las sugerencias se generan con JS -->
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta de Resultado Individual -->
+                    <div id="resultadoContainer" class="mt-8 hidden print-area">
+                        <div id="resultadoCard" class="border rounded-lg p-5 transition-all">
+                            <!-- Se llena dinámicamente mediante JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= MÓDULO 2: BÚSQUEDA POR LOTE ================= -->
+                <div id="seccionLote" class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg border border-slate-200 p-6 sm:p-8 hidden">
+                    <h2 class="text-lg font-bold text-slate-900 mb-2">Consulta Masiva de Folios</h2>
+                    <p class="text-slate-600 text-sm mb-4">
+                        Pegue o escriba varias matrículas separadas por saltos de línea, comas o espacios:
+                    </p>
+
+                    <div class="no-print">
+                        <textarea 
+                            id="inputLote" 
+                            rows="5" 
+                            placeholder="Ejemplo:&#10;040-353927&#10;353928, 040-12345&#10;353929"
+                            class="w-full border border-slate-300 rounded-lg p-3 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 mb-4 shadow-sm"
+                        ></textarea>
+
+                        <div class="flex justify-between items-center gap-3">
+                            <button 
+                                onclick="procesarLote()" 
+                                class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-6 py-2.5 rounded-lg transition shadow"
+                            >
+                                Procesar Lista
+                            </button>
+                            <button 
+                                onclick="limpiarLote()" 
+                                class="text-xs text-slate-500 hover:text-slate-800 underline"
+                            >
+                                Limpiar todo
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de Resultados por Lote -->
+                    <div id="resultadoLoteContainer" class="mt-8 hidden print-area">
+                        <div class="flex justify-between items-center mb-4 no-print">
+                            <h3 class="font-bold text-slate-800">Resultados del Procesamiento</h3>
+                            <button 
+                                onclick="imprimirPagina()" 
+                                class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition shadow flex items-center gap-2"
+                            >
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                                Exportar a PDF / Imprimir
+                            </button>
+                        </div>
+
+                        <div class="overflow-x-auto border border-slate-200 rounded-lg shadow-sm">
+                            <table class="w-full text-left border-collapse text-sm">
+                                <thead class="bg-slate-900 text-white font-semibold text-xs uppercase">
+                                    <tr>
+                                        <th class="p-3">#</th>
+                                        <th class="p-3">Ingresado</th>
+                                        <th class="p-3">Estado</th>
+                                        <th class="p-3">Origen (Barranquilla 040)</th>
+                                        <th class="p-3">Destino (Soledad 041)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablaLoteBody" class="divide-y divide-slate-200 font-mono">
+                                    <!-- Filas dinámicas -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- Pie de página -->
+            <footer class="text-center py-4 text-slate-500 text-xs border-t border-slate-200 no-print">
+                Sistema de Consulta de Matrículas Inmobiliarias &bull; ORIP Barranquilla & Soledad
+            </footer>
+        </div>
+
     </div>
-
-    <!-- Contenido Principal -->
-    <main class="max-w-5xl mx-auto px-4 py-8 flex-grow w-full">
-
-        <!-- ================= MÓDULO 1: BÚSQUEDA INDIVIDUAL Y PARCIAL ================= -->
-        <div id="seccionIndividual" class="max-w-2xl mx-auto bg-white rounded-xl shadow-lg border border-slate-200 p-6 sm:p-8 relative">
-            <p class="text-slate-600 text-sm mb-4 text-center">
-                Ingrese el número completo o un segmento parcial de la matrícula (ej. <span class="font-mono bg-slate-100 px-1 py-0.5 rounded text-slate-800">353927</span> o <span class="font-mono bg-slate-100 px-1 py-0.5 rounded text-slate-800">040-353927</span>).
-            </p>
-
-            <!-- Campo de Texto con Lista de Sugerencias en Tiempo Real -->
-            <div class="relative no-print">
-                <div class="flex flex-col sm:flex-row gap-3">
-                    <input 
-                        type="text" 
-                        id="inputMatricula" 
-                        placeholder="Escriba para buscar coincidencias..." 
-                        class="flex-grow border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-center sm:text-left text-lg shadow-sm"
-                        oninput="buscarCoincidenciasParciales()"
-                        autocomplete="off"
-                        autofocus
-                    >
-                    <button 
-                        onclick="consultarMatriculaDirecta()" 
-                        class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-6 py-3 rounded-lg transition shadow flex items-center justify-center gap-2"
-                    >
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                        Buscar
-                    </button>
-                </div>
-
-                <!-- Desplegable de Coincidencias en Tiempo Real -->
-                <div id="dropdownSugerencias" class="absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-60 overflow-y-auto hidden">
-                    <!-- Las sugerencias se generan con JS -->
-                </div>
-            </div>
-
-            <!-- Tarjeta de Resultado Individual -->
-            <div id="resultadoContainer" class="mt-8 hidden print-area">
-                <div id="resultadoCard" class="border rounded-lg p-5 transition-all">
-                    <!-- Se llena dinámicamente mediante JavaScript -->
-                </div>
-            </div>
-        </div>
-
-        <!-- ================= MÓDULO 2: BÚSQUEDA POR LOTE ================= -->
-        <div id="seccionLote" class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg border border-slate-200 p-6 sm:p-8 hidden">
-            <h2 class="text-lg font-bold text-slate-900 mb-2">Consulta Masiva de Folios</h2>
-            <p class="text-slate-600 text-sm mb-4">
-                Pegue o escriba varias matrículas separadas por saltos de línea, comas o espacios (máx. 50 por consulta):
-            </p>
-
-            <div class="no-print">
-                <textarea 
-                    id="inputLote" 
-                    rows="5" 
-                    placeholder="Ejemplo:&#10;040-353927&#10;353928, 040-12345&#10;353929"
-                    class="w-full border border-slate-300 rounded-lg p-3 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 mb-4 shadow-sm"
-                ></textarea>
-
-                <div class="flex justify-between items-center gap-3">
-                    <button 
-                        onclick="procesarLote()" 
-                        class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-6 py-2.5 rounded-lg transition shadow"
-                    >
-                        Procesar Lista
-                    </button>
-                    <button 
-                        onclick="limpiarLote()" 
-                        class="text-xs text-slate-500 hover:text-slate-800 underline"
-                    >
-                        Limpiar todo
-                    </button>
-                </div>
-            </div>
-
-            <!-- Tabla de Resultados por Lote -->
-            <div id="resultadoLoteContainer" class="mt-8 hidden print-area">
-                <div class="flex justify-between items-center mb-4 no-print">
-                    <h3 class="font-bold text-slate-800">Resultados del Procesamiento</h3>
-                    <button 
-                        onclick="imprimirPagina()" 
-                        class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition shadow flex items-center gap-2"
-                    >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                        Exportar a PDF / Imprimir
-                    </button>
-                </div>
-
-                <div class="overflow-x-auto border border-slate-200 rounded-lg shadow-sm">
-                    <table class="w-full text-left border-collapse text-sm">
-                        <thead class="bg-slate-900 text-white font-semibold text-xs uppercase">
-                            <tr>
-                                <th class="p-3">#</th>
-                                <th class="p-3">Ingresado</th>
-                                <th class="p-3">Estado</th>
-                                <th class="p-3">Origen (Barranquilla 040)</th>
-                                <th class="p-3">Destino (Soledad 041)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tablaLoteBody" class="divide-y divide-slate-200 font-mono">
-                            <!-- Filas dinámicas -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- Pie de página -->
-    <footer class="text-center py-6 text-slate-500 text-xs no-print">
-        Sistema de Consulta de Matrículas Inmobiliarias &bull; ORIP Barranquilla & Soledad
-    </footer>
 
     <!-- Lógica de Búsqueda y Navegación con JavaScript -->
     <script>
@@ -187,6 +259,13 @@
             } catch (error) {
                 console.error("Error al cargar traslados.json:", error);
                 alert("No se pudo cargar la base de datos de traslados.");
+            }
+        });
+
+        // Permitir buscar presionando Enter en el input individual
+        document.getElementById('inputMatricula').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                consultarMatriculaDirecta();
             }
         });
 
@@ -333,7 +412,6 @@
                 return;
             }
 
-            // Separar por salto de línea, coma o espacio
             let lineas = text.split(/[\n, ]+/).filter(x => x.trim() !== '');
             if (lineas.length === 0) return;
 
