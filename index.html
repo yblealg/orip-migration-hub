@@ -4,125 +4,377 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Consulta de Matrículas - Traslados Barranquilla y Soledad</title>
-    <!-- Tailwind CSS para un diseño limpio y profesional -->
+    <!-- Tailwind CSS para diseño moderno -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilos específicos para impresión / PDF */
+        @media print {
+            header, footer, .no-print, button, input, textarea {
+                display: none !important;
+            }
+            body {
+                background-color: #ffffff !important;
+                color: #000000 !important;
+            }
+            .print-area {
+                border: none !important;
+                box-shadow: none !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 0 !important;
+            }
+            .print-header {
+                display: block !important;
+                text-align: center;
+                margin-bottom: 20px;
+                border-bottom: 2px solid #0f172a;
+                padding-bottom: 10px;
+            }
+        }
+    </style>
 </head>
-<body class="bg-slate-100 min-h-screen flex flex-col justify-between">
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col justify-between font-sans">
 
-    <!-- Encabezado -->
-    <header class="bg-blue-900 text-white py-6 shadow-md">
-        <div class="max-w-4xl mx-auto px-4 text-center">
-            <h1 class="text-2xl font-bold">Consulta de Matrículas Inmobiliarias</h1>
-            <p class="text-blue-200 text-sm mt-1">Histórico de Traslados: Círculo Registral Barranquilla (040) y Soledad (041)</p>
+    <!-- Encabezado Inspirado en SNR / ORIP -->
+    <header class="bg-slate-900 text-white py-6 shadow-md border-b-4 border-emerald-500">
+        <div class="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight text-white">Consulta de Matrículas Inmobiliarias</h1>
+                <p class="text-slate-400 text-xs sm:text-sm mt-1">Histórico de Traslados: Círculo Registral Barranquilla (040) &rarr; Soledad (041)</p>
+            </div>
+            <div class="flex gap-2 no-print">
+                <button onclick="cambiarModo('individual')" id="btnTabIndividual" class="px-4 py-2 text-xs font-bold rounded-lg transition bg-emerald-500 text-slate-950 shadow">
+                    Búsqueda Individual
+                </button>
+                <button onclick="cambiarModo('lote')" id="btnTabLote" class="px-4 py-2 text-xs font-bold rounded-lg transition bg-slate-800 text-slate-300 hover:bg-slate-700">
+                    Búsqueda por Lote
+                </button>
+            </div>
         </div>
     </header>
 
+    <!-- Encabezado oculto que solo aparece al Imprimir -->
+    <div class="print-header hidden">
+        <h2 style="font-size: 18pt; font-weight: bold; margin: 0;">REPORTE OFICIAL DE CONSULTA DE MATRÍCULAS</h2>
+        <p style="font-size: 10pt; color: #475569; margin-top: 4px;">Sistema de Verificación de Traslados ORIP Barranquilla (040) / Soledad (041)</p>
+        <p id="printFechaHora" style="font-size: 9pt; color: #64748b; margin-top: 2px;"></p>
+    </div>
+
     <!-- Contenido Principal -->
-    <main class="max-w-xl mx-auto px-4 py-10 flex-grow w-full">
-        <div class="bg-white rounded-xl shadow-lg p-6 sm:p-8">
+    <main class="max-w-5xl mx-auto px-4 py-8 flex-grow w-full">
+
+        <!-- ================= MÓDULO 1: BÚSQUEDA INDIVIDUAL Y PARCIAL ================= -->
+        <div id="seccionIndividual" class="max-w-2xl mx-auto bg-white rounded-xl shadow-lg border border-slate-200 p-6 sm:p-8 relative">
             <p class="text-slate-600 text-sm mb-4 text-center">
-                Ingrese el número de matrícula (con o sin prefijo, ej: <span class="font-mono bg-slate-100 px-1 py-0.5 rounded">040-353927</span> o <span class="font-mono bg-slate-100 px-1 py-0.5 rounded">353927</span>).
+                Ingrese el número completo o un segmento parcial de la matrícula (ej. <span class="font-mono bg-slate-100 px-1 py-0.5 rounded text-slate-800">353927</span> o <span class="font-mono bg-slate-100 px-1 py-0.5 rounded text-slate-800">040-353927</span>).
             </p>
 
-            <!-- Formulario de Búsqueda -->
-            <div class="flex flex-col sm:flex-row gap-3">
-                <input 
-                    type="text" 
-                    id="inputMatricula" 
-                    placeholder="Ej. 353927 o 040-353927" 
-                    class="flex-grow border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-600 font-mono text-center sm:text-left text-lg"
-                    autofocus
-                >
-                <button 
-                    onclick="consultarMatricula()" 
-                    class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-lg transition shadow"
-                >
-                    Consultar
-                </button>
+            <!-- Campo de Texto con Lista de Sugerencias en Tiempo Real -->
+            <div class="relative no-print">
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <input 
+                        type="text" 
+                        id="inputMatricula" 
+                        placeholder="Escriba para buscar coincidencias..." 
+                        class="flex-grow border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-center sm:text-left text-lg shadow-sm"
+                        oninput="buscarCoincidenciasParciales()"
+                        autocomplete="off"
+                        autofocus
+                    >
+                    <button 
+                        onclick="consultarMatriculaDirecta()" 
+                        class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-6 py-3 rounded-lg transition shadow flex items-center justify-center gap-2"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        Buscar
+                    </button>
+                </div>
+
+                <!-- Desplegable de Coincidencias en Tiempo Real -->
+                <div id="dropdownSugerencias" class="absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-60 overflow-y-auto hidden">
+                    <!-- Las sugerencias se generan con JS -->
+                </div>
             </div>
 
-            <!-- Área de Resultados -->
-            <div id="resultadoContainer" class="mt-8 hidden">
+            <!-- Tarjeta de Resultado Individual -->
+            <div id="resultadoContainer" class="mt-8 hidden print-area">
                 <div id="resultadoCard" class="border rounded-lg p-5 transition-all">
                     <!-- Se llena dinámicamente mediante JavaScript -->
                 </div>
             </div>
         </div>
+
+        <!-- ================= MÓDULO 2: BÚSQUEDA POR LOTE ================= -->
+        <div id="seccionLote" class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg border border-slate-200 p-6 sm:p-8 hidden">
+            <h2 class="text-lg font-bold text-slate-900 mb-2">Consulta Masiva de Folios</h2>
+            <p class="text-slate-600 text-sm mb-4">
+                Pegue o escriba varias matrículas separadas por saltos de línea, comas o espacios (máx. 50 por consulta):
+            </p>
+
+            <div class="no-print">
+                <textarea 
+                    id="inputLote" 
+                    rows="5" 
+                    placeholder="Ejemplo:&#10;040-353927&#10;353928, 040-12345&#10;353929"
+                    class="w-full border border-slate-300 rounded-lg p-3 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 mb-4 shadow-sm"
+                ></textarea>
+
+                <div class="flex justify-between items-center gap-3">
+                    <button 
+                        onclick="procesarLote()" 
+                        class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-6 py-2.5 rounded-lg transition shadow"
+                    >
+                        Procesar Lista
+                    </button>
+                    <button 
+                        onclick="limpiarLote()" 
+                        class="text-xs text-slate-500 hover:text-slate-800 underline"
+                    >
+                        Limpiar todo
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabla de Resultados por Lote -->
+            <div id="resultadoLoteContainer" class="mt-8 hidden print-area">
+                <div class="flex justify-between items-center mb-4 no-print">
+                    <h3 class="font-bold text-slate-800">Resultados del Procesamiento</h3>
+                    <button 
+                        onclick="imprimirPagina()" 
+                        class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition shadow flex items-center gap-2"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                        Exportar a PDF / Imprimir
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto border border-slate-200 rounded-lg shadow-sm">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead class="bg-slate-900 text-white font-semibold text-xs uppercase">
+                            <tr>
+                                <th class="p-3">#</th>
+                                <th class="p-3">Ingresado</th>
+                                <th class="p-3">Estado</th>
+                                <th class="p-3">Origen (Barranquilla 040)</th>
+                                <th class="p-3">Destino (Soledad 041)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaLoteBody" class="divide-y divide-slate-200 font-mono">
+                            <!-- Filas dinámicas -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <!-- Pie de página -->
-    <footer class="text-center py-6 text-slate-500 text-xs">
-        Sistema de Consulta de Matrículas Inmobiliarias &bull; Optimizado para GitHub Pages
+    <footer class="text-center py-6 text-slate-500 text-xs no-print">
+        Sistema de Consulta de Matrículas Inmobiliarias &bull; ORIP Barranquilla & Soledad
     </footer>
 
-    <!-- Lógica de Búsqueda con JavaScript -->
+    <!-- Lógica de Búsqueda y Navegación con JavaScript -->
     <script>
         let dbMatriculas = {};
 
-        // Cargar el archivo JSON automáticamente al abrir la página
+        // Cargar el JSON automáticamente al iniciar
         window.addEventListener('DOMContentLoaded', async () => {
             try {
                 let response = await fetch('traslados.json');
                 dbMatriculas = await response.json();
                 console.log("Base de datos de matrículas cargada correctamente.");
             } catch (error) {
-                console.error("Error al cargar el archivo traslados.json:", error);
+                console.error("Error al cargar traslados.json:", error);
                 alert("No se pudo cargar la base de datos de traslados.");
             }
         });
 
-        // Permitir buscar presionando la tecla "Enter"
-        document.getElementById('inputMatricula').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                consultarMatricula();
+        // Alternar entre modo Búsqueda Individual y Por Lote
+        function cambiarModo(modo) {
+            const secInd = document.getElementById('seccionIndividual');
+            const secLot = document.getElementById('seccionLote');
+            const btnInd = document.getElementById('btnTabIndividual');
+            const btnLot = document.getElementById('btnTabLote');
+
+            if (modo === 'individual') {
+                secInd.classList.remove('hidden');
+                secLot.classList.add('hidden');
+                btnInd.className = "px-4 py-2 text-xs font-bold rounded-lg transition bg-emerald-500 text-slate-950 shadow";
+                btnLot.className = "px-4 py-2 text-xs font-bold rounded-lg transition bg-slate-800 text-slate-300 hover:bg-slate-700";
+            } else {
+                secInd.classList.add('hidden');
+                secLot.classList.remove('hidden');
+                btnLot.className = "px-4 py-2 text-xs font-bold rounded-lg transition bg-emerald-500 text-slate-950 shadow";
+                btnInd.className = "px-4 py-2 text-xs font-bold rounded-lg transition bg-slate-800 text-slate-300 hover:bg-slate-700";
             }
-        });
+        }
 
-        function consultarMatricula() {
+        // Extraer solo los dígitos numéricos
+        function limpiarNumero(val) {
+            let partes = val.split('-');
+            return partes[partes.length - 1].replace(/\D/g, '').trim();
+        }
+
+        // Búsqueda en Tiempo Real (Parcial / Coincidencias)
+        function buscarCoincidenciasParciales() {
             let inputVal = document.getElementById('inputMatricula').value.trim();
-            let container = document.getElementById('resultadoContainer');
-            let card = document.getElementById('resultadoCard');
+            let dropdown = document.getElementById('dropdownSugerencias');
+            let query = limpiarNumero(inputVal);
 
-            if (!inputVal) {
-                alert("Por favor ingrese un número de matrícula válido.");
+            if (query.length < 3) {
+                dropdown.classList.add('hidden');
+                dropdown.innerHTML = '';
                 return;
             }
 
-            // Normalización: Extraer solo los números del texto ingresado (ignora guiones y prefijos)
-            // Ejemplo: "040-353927" -> "353927"
-            let partes = inputVal.split('-');
-            let numeroLimpio = partes[partes.length - 1].trim();
+            let coincidencias = [];
+            let llaves = Object.keys(dbMatriculas);
 
+            for (let k of llaves) {
+                let item = dbMatriculas[k];
+                if (k.includes(query) || item.o.includes(query) || item.d.includes(query)) {
+                    coincidencias.push({ clave: k, data: item });
+                    if (coincidencias.length >= 10) break; // Límite de sugerencias
+                }
+            }
+
+            if (coincidencias.length > 0) {
+                dropdown.innerHTML = coincidencias.map(c => `
+                    <div 
+                        onclick="seleccionarSugerencia('${c.clave}')" 
+                        class="p-3 hover:bg-slate-100 cursor-pointer border-b last:border-0 border-slate-100 flex justify-between items-center text-sm"
+                    >
+                        <div>
+                            <span class="font-mono font-bold text-slate-800">${c.data.o}</span>
+                            <span class="text-xs text-slate-500 block">Origen Barranquilla</span>
+                        </div>
+                        <span class="text-emerald-600 font-bold text-xs">&rarr;</span>
+                        <div class="text-right">
+                            <span class="font-mono font-bold text-emerald-700">${c.data.d}</span>
+                            <span class="text-xs text-slate-500 block">Destino Soledad</span>
+                        </div>
+                    </div>
+                `).join('');
+                dropdown.classList.remove('hidden');
+            } else {
+                dropdown.classList.add('hidden');
+            }
+        }
+
+        function seleccionarSugerencia(clave) {
+            document.getElementById('inputMatricula').value = clave;
+            document.getElementById('dropdownSugerencias').classList.add('hidden');
+            consultarMatriculaDirecta();
+        }
+
+        // Consulta Individual
+        function consultarMatriculaDirecta() {
+            let inputVal = document.getElementById('inputMatricula').value.trim();
+            let container = document.getElementById('resultadoContainer');
+            let card = document.getElementById('resultadoCard');
+            let dropdown = document.getElementById('dropdownSugerencias');
+
+            dropdown.classList.add('hidden');
+
+            if (!inputVal) {
+                alert("Por favor ingrese un número de matrícula.");
+                return;
+            }
+
+            let numeroLimpio = limpiarNumero(inputVal);
             container.classList.remove('hidden');
 
-            // Buscar en el diccionario cargado
             if (dbMatriculas.hasOwnProperty(numeroLimpio)) {
                 let data = dbMatriculas[numeroLimpio];
-                
-                card.className = "border border-emerald-200 bg-emerald-50 rounded-lg p-5";
+                card.className = "border border-emerald-300 bg-emerald-50/50 rounded-lg p-6 shadow-sm";
                 card.innerHTML = `
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="bg-emerald-600 text-white text-xs font-bold px-2.5 py-1 rounded-full uppercase">¡Matrícula Trasladada Encontrada!</span>
+                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-emerald-200">
+                        <span class="bg-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                            ¡Traslado Confirmado!
+                        </span>
+                        <button onclick="imprimirPagina()" class="no-print text-xs font-bold text-emerald-800 hover:text-emerald-950 underline flex items-center gap-1">
+                            🖨️ Imprimir Ficha
+                        </button>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                        <div class="bg-white p-3 rounded border border-emerald-100 shadow-sm">
-                            <span class="block text-xs text-slate-500 uppercase font-semibold">Matrícula de Origen (Barranquilla)</span>
-                            <span class="text-lg font-mono font-bold text-slate-800">${data.o}</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                            <span class="block text-xs text-slate-500 uppercase font-bold mb-1">Origen (Barranquilla 040)</span>
+                            <span class="text-xl font-mono font-bold text-slate-800">${data.o}</span>
                         </div>
-                        <div class="bg-white p-3 rounded border border-emerald-100 shadow-sm">
-                            <span class="block text-xs text-slate-500 uppercase font-semibold">Matrícula de Destino (Soledad)</span>
-                            <span class="text-lg font-mono font-bold text-blue-700">${data.d}</span>
+                        <div class="bg-white p-4 rounded-lg border border-emerald-200 shadow-sm">
+                            <span class="block text-xs text-emerald-700 uppercase font-bold mb-1">Destino (Soledad 041)</span>
+                            <span class="text-xl font-mono font-bold text-emerald-700">${data.d}</span>
                         </div>
                     </div>
-                    <p class="text-xs text-slate-500 mt-4 text-center">El inmueble fue trasladado al Círculo Registral de Soledad (041).</p>
+                    <p class="text-xs text-slate-500 mt-4 text-center italic">Este inmueble actualmente corresponde al Círculo Registral de Soledad (041).</p>
                 `;
             } else {
-                card.className = "border border-amber-200 bg-amber-50 rounded-lg p-5 text-center";
+                card.className = "border border-amber-300 bg-amber-50/50 rounded-lg p-6 text-center shadow-sm";
                 card.innerHTML = `
-                    <span class="bg-amber-600 text-white text-xs font-bold px-2.5 py-1 rounded-full uppercase">Sin Registro de Traslado</span>
-                    <p class="text-slate-700 text-sm mt-3">La matrícula <strong class="font-mono">${inputVal}</strong> no registra antecedentes de traslado en la base de datos analizada (o el número no existe).</p>
+                    <span class="bg-amber-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                        Sin Registro de Traslado
+                    </span>
+                    <p class="text-slate-700 text-sm mt-3">
+                        La matrícula <strong class="font-mono text-slate-900">${inputVal}</strong> no registra traslado a Soledad en la base de datos analizada.
+                    </p>
                 `;
             }
+        }
+
+        // Búsqueda por Lote
+        function procesarLote() {
+            let text = document.getElementById('inputLote').value.trim();
+            let tbody = document.getElementById('tablaLoteBody');
+            let container = document.getElementById('resultadoLoteContainer');
+
+            if (!text) {
+                alert("Ingrese al menos una matrícula en el cuadro de texto.");
+                return;
+            }
+
+            // Separar por salto de línea, coma o espacio
+            let lineas = text.split(/[\n, ]+/).filter(x => x.trim() !== '');
+            if (lineas.length === 0) return;
+
+            tbody.innerHTML = '';
+            container.classList.remove('hidden');
+
+            lineas.forEach((item, index) => {
+                let numLimpio = limpiarNumero(item);
+                let existe = dbMatriculas.hasOwnProperty(numLimpio);
+                let data = existe ? dbMatriculas[numLimpio] : null;
+
+                let tr = document.createElement('tr');
+                tr.className = index % 2 === 0 ? "bg-white" : "bg-slate-50";
+
+                tr.innerHTML = `
+                    <td class="p-3 text-slate-400 text-xs">${index + 1}</td>
+                    <td class="p-3 font-bold text-slate-800">${item}</td>
+                    <td class="p-3">
+                        ${existe 
+                            ? '<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded font-bold">TRASLADADO</span>'
+                            : '<span class="bg-slate-200 text-slate-600 text-xs px-2 py-0.5 rounded">SIN REGISTRO</span>'
+                        }
+                    </td>
+                    <td class="p-3 text-slate-700">${existe ? data.o : '-'}</td>
+                    <td class="p-3 font-bold ${existe ? 'text-emerald-600' : 'text-slate-400'}">${existe ? data.d : '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function limpiarLote() {
+            document.getElementById('inputLote').value = '';
+            document.getElementById('resultadoLoteContainer').classList.add('hidden');
+        }
+
+        // Función para imprimir o guardar en PDF
+        function imprimirPagina() {
+            const ahora = new Date();
+            const fechaStr = "Fecha de consulta: " + ahora.toLocaleDateString('es-CO') + " - " + ahora.toLocaleTimeString('es-CO');
+            document.getElementById('printFechaHora').textContent = fechaStr;
+            window.print();
         }
     </script>
 </body>
